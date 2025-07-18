@@ -41,13 +41,19 @@ RUN apt-get update && apt-get install -y \
   && rm -rf /var/lib/apt/lists/
 
 ###############################################################################
-# 2) GPG Key and ROS 2 repo
+# 2) GPG Key and ROS 2 repo (Updated for expired key fix)
 ###############################################################################
+# Add the updated ROS GPG key
 RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
-  | gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg && \
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
+  | gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg
+
+# Add ROS 2 repository with the new keyring
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
   http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" \
   > /etc/apt/sources.list.d/ros2.list
+
+# Clean any cached package lists to force refresh
+RUN rm -rf /var/lib/apt/lists/*
 
 ###############################################################################
 # 3) System update and ROS 2 install + build-tools
@@ -86,14 +92,34 @@ RUN apt-get update && apt-get install -y \
   && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get install python3-rosdep
+
 #───────────────────────────────────────────────────────────────────────────────
-# 4) Install lightsfm (Social-Force Model) – required by HuNavSim
+# 4) Install Python dependencies for HuNav packages
+#───────────────────────────────────────────────────────────────────────────────
+RUN /isaac-sim/python.sh -m pip install netifaces lark-parser
+
+#───────────────────────────────────────────────────────────────────────────────
+# 5) Install lightsfm (Social-Force Model) – required by HuNavSim
 #───────────────────────────────────────────────────────────────────────────────
 RUN git clone https://github.com/robotics-upo/lightsfm.git \
   && cd lightsfm && make && make install
 
 #───────────────────────────────────────────────────────────────────────────────
-# 5) Clone required packages: People, BehaviorTree and IsaacSim-ros_workspaces
+# 6) Install Groot2 v1.6.1 
+#───────────────────────────────────────────────────────────────────────────────
+WORKDIR /opt/Groot2
+
+ADD https://s3.us-west-1.amazonaws.com/download.behaviortree.dev/groot2_linux_installer/Groot2-v1.6.1-x86_64.AppImage Groot2.AppImage
+
+RUN chmod +x Groot2.AppImage && \
+    ./Groot2.AppImage --appimage-extract && \
+    mkdir -p /opt/Groot2/bin && \
+    mv squashfs-root /opt/Groot2/squashfs && \
+    ln -s /opt/Groot2/squashfs/AppRun /opt/Groot2/bin/groot2 && \
+    rm Groot2.AppImage
+
+#───────────────────────────────────────────────────────────────────────────────
+# 7) Clone required packages: People, BehaviorTree and IsaacSim-ros_workspaces
 #───────────────────────────────────────────────────────────────────────────────
 WORKDIR /home/ros2_ws/src
 
@@ -104,8 +130,10 @@ RUN git clone --branch ros2 https://github.com/wg-perception/people.git && \
   rsync -a /tmp/isaac_ws/humble_ws/src/ . && rm -rf /tmp/isaac_ws
 
 #───────────────────────────────────────────────────────────────────────────────
-# 6) Solve dependencies and compile workspace 
+# 8) Solve dependencies and compile main ROS2 workspace 
 #───────────────────────────────────────────────────────────────────────────────
+WORKDIR /home/ros2_ws
+
 RUN apt-get update && \
   rosdep init && \
   rosdep update && \
@@ -114,26 +142,131 @@ RUN apt-get update && \
   --rosdistro humble -y --ignore-src && \
   rm -rf /var/lib/apt/lists/*
 
-WORKDIR /home/ros2_ws/
-RUN apt-get update && source /opt/ros/humble/setup.bash && \
+RUN source /opt/ros/humble/setup.bash && \
   colcon build --symlink-install
 
-WORKDIR /workspace
-RUN /isaac-sim/python.sh -m pip install netifaces
 #───────────────────────────────────────────────────────────────────────────────
-# 7) Source the workspaces and set launcher alias
+# 9) Setup environment and create startup script for mounted workspace
 #───────────────────────────────────────────────────────────────────────────────
-RUN source /opt/ros/humble/setup.bash
-RUN source /home/ros2_ws/install/setup.bash
-RUN echo "alias launch_hunav_isaac='source /workspace/hunav_isaac_ws/install/setup.bash && \
-          cp /workspace/hunav_isaac_ws/src/Hunav_isaac_wrapper/isaacsim.exp.base.kit /isaac-sim/apps/ 2>/dev/null || true && \
-          /isaac-sim/python.sh /workspace/hunav_isaac_ws/src/Hunav_isaac_wrapper/main.py'" \
-  >> /etc/bash.bashrc
-RUN echo 'source /opt/ros/humble/setup.bash' \
-  >> /etc/bash.bashrc && \
-  echo 'source /home/ros2_ws/install/setup.bash' \
-  >> /etc/bash.bashrc
 
+# Source the base ROS2 environments
+RUN echo '# >>> ROS 2 Environments >>>' >> /etc/bash.bashrc && \
+    echo 'source /opt/ros/humble/setup.bash' >> /etc/bash.bashrc && \
+    echo 'source /home/ros2_ws/install/setup.bash' >> /etc/bash.bashrc && \
+    echo '# <<< ROS 2 Environments <<<' >> /etc/bash.bashrc
+
+# Add PATH for Groot2
+RUN echo '# Add Groot2 to PATH' >> /etc/bash.bashrc && \
+    echo 'export PATH="/opt/Groot2/bin:$PATH"' >> /etc/bash.bashrc
+
+# Create a one-time setup script for first container start
+COPY <<'EOF' /usr/local/bin/setup_hunav_workspace.sh
+#!/bin/bash
+set -e
+
+SETUP_MARKER="/workspace/hunav_isaac_ws/.container_setup_done"
+
+if [ -f "$SETUP_MARKER" ]; then
+    echo -e "\nHuNav Isaac workspace already configured."
+
+    if [ -f "/workspace/hunav_isaac_ws/src/Hunav_isaac_wrapper/src/isaacsim.exp.base.kit" ]; then
+        cp /workspace/hunav_isaac_ws/src/Hunav_isaac_wrapper/src/isaacsim.exp.base.kit /isaac-sim/apps/ 2>/dev/null || true
+    fi
+
+    if [ -f "/workspace/hunav_isaac_ws/install/setup.bash" ]; then
+        cd /workspace/hunav_isaac_ws
+        source install/setup.bash
+        echo -e "Workspace sourced for current session.\n"
+    fi
+    exit 0
+fi
+
+echo -e "🔧 Setting up HuNav Isaac workspace for the first time...\n"
+cd /workspace/hunav_isaac_ws
+
+# ────────────────────────────────────────────────────────────────────────
+# Copy Isaac Sim config (required for omni.anim.graph)
+# ────────────────────────────────────────────────────────────────────────
+if [ -f "src/Hunav_isaac_wrapper/src/isaacsim.exp.base.kit" ]; then
+    echo "Copying Isaac Sim configuration..."
+    cp src/Hunav_isaac_wrapper/src/isaacsim.exp.base.kit /isaac-sim/apps/
+    echo "Isaac Sim config copied to /isaac-sim/apps/"
+else
+    echo "⚠️  Warning: isaacsim.exp.base.kit not found in src/"
+fi
+
+# ────────────────────────────────────────────────────────────────────────
+# Unzip Carter sensors if available
+# ────────────────────────────────────────────────────────────────────────
+if [ -f "src/Hunav_isaac_wrapper/src/config/robots/nova_carter_ros2_sensors.zip" ]; then
+    echo "Extracting Carter ROS2 sensors..."
+    cd src/Hunav_isaac_wrapper/src/config/robots
+    unzip -n nova_carter_ros2_sensors.zip
+    cd /workspace/hunav_isaac_ws
+fi
+
+# ────────────────────────────────────────────────────────────────────────
+# Build and source workspace
+# ────────────────────────────────────────────────────────────────────────
+echo -e "\n🔨 Building workspace...\n"
+source /opt/ros/humble/setup.bash
+source /home/ros2_ws/install/setup.bash
+colcon build --symlink-install
+
+echo -e "\nSourcing workspace...\n"
+source install/setup.bash
+
+# Add workspace sourcing to bashrc
+if ! grep -q "source /workspace/hunav_isaac_ws/install/setup.bash" /etc/bash.bashrc; then
+    echo 'source /workspace/hunav_isaac_ws/install/setup.bash' >> /etc/bash.bashrc
+    echo "Workspace sourcing added to bashrc."
+fi
+
+# Add useful alias to future sessions
+if ! grep -q "alias hunav_isaac=" /etc/bash.bashrc; then
+    echo "alias hunav_isaac='ros2 run hunav_isaac_wrapper hunav_isaac_launcher'" >> /etc/bash.bashrc
+    echo "⚡ Alias 'hunav_isaac' added to bashrc."
+fi
+
+# Export alias immediately for this session
+alias hunav_isaac='ros2 run hunav_isaac_wrapper hunav_isaac_launcher'
+
+touch "$SETUP_MARKER"
+
+echo ""
+echo "──────────────────────────────────────────────────────────────"
+echo -e "\n HuNav Isaac workspace setup complete! ✅\n"
+echo "──────────────────────────────────────────────────────────────"
+echo ""
+echo "🔁 This setup will not run again unless you delete the volumes or rebuild the container."
+echo ""
+echo "You can now run the HuNav Isaac simulation with:"
+echo "  hunav_isaac  # Launch interactive menu"
+echo "  hunav_isaac --config warehouse_agents.yaml --robot carter_ROS  # Launch with scenario and robot"
+echo "  ros2 run hunav_isaac_wrapper hunav_isaac_launcher  # Full ROS2 command"
+echo ""
+source /etc/bash.bashrc
+EOF
+
+RUN chmod +x /usr/local/bin/setup_hunav_workspace.sh
+
+# Setup auto-run at container start (TTY only)
+RUN echo '' >> /etc/bash.bashrc && \
+    echo '# ────────────────────────────────────────────────────────────' >> /etc/bash.bashrc && \
+    echo '# HuNav Isaac workspace auto-setup' >> /etc/bash.bashrc && \
+    echo '# ────────────────────────────────────────────────────────────' >> /etc/bash.bashrc && \
+    echo 'if [ -t 0 ] && [ -d "/workspace/hunav_isaac_ws" ]; then' >> /etc/bash.bashrc && \
+    echo '    if [ -x "/usr/local/bin/setup_hunav_workspace.sh" ]; then' >> /etc/bash.bashrc && \
+    echo '        /usr/local/bin/setup_hunav_workspace.sh' >> /etc/bash.bashrc && \
+    echo '    else' >> /etc/bash.bashrc && \
+    echo '        echo "⚠️  Setup script not executable. Trying bash fallback..."' >> /etc/bash.bashrc && \
+    echo '        bash /usr/local/bin/setup_hunav_workspace.sh' >> /etc/bash.bashrc && \
+    echo '    fi' >> /etc/bash.bashrc && \
+    echo '    if [ -f "/workspace/hunav_isaac_ws/install/setup.bash" ]; then' >> /etc/bash.bashrc && \
+    echo '        cd /workspace/hunav_isaac_ws && source install/setup.bash' >> /etc/bash.bashrc && \
+    echo '    fi' >> /etc/bash.bashrc && \
+    echo 'fi' >> /etc/bash.bashrc
 
 WORKDIR /workspace/hunav_isaac_ws
 
+RUN echo "alias hunav_isaac='ros2 run hunav_isaac_wrapper hunav_isaac_launcher'" >> /etc/bash.bashrc

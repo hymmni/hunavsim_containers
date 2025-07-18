@@ -60,7 +60,6 @@ Execute the indicated script:
 ./given_script_name.bash
 ```
 
-
 ## Execution Option 1, 2 and 4 (Gazebo Classic, Gazebo Fortress and Webots)
 
 The previous script will run the docker container and will compile the current workspace. Moreover it will show a menu with the possible options. It will show the stored scenarios that can be executed (.yaml files in the *scenarios* directory of the running wrapper) along with other options. For example:
@@ -83,62 +82,76 @@ The user can create/modify the simulations throught the shared workspace.
 
 NOTE FOR GAZEBO CLASSIC: SOMETIMES, GAZEBO TAKES A LONG TIME TO LAUNCH THE FIRST TIME LEADING TO ERRORS IN THE SYSTEM. IN THAT CASE, STOP THE SYSTEM (CRTL+C), THE MENU WILL SHOW UP AGAIN, AND RE-RUN THE ENVIRONMENT AGAIN. IT SHOULD WORK THE SECOND TIME.
 
-
 ## Execution Option 3 (Isaac Sim)
 
-***<ins>Omniverse login required</ins>***  
-The runner will prompt you for your Omniverse **username and password** the first time it runs.  
-These credentials are required to connect to the **Nucleus server**, which allows **Isaac Sim** to download and cache the asset packs locally.  
-If you don’t have an account yet, you can sign up at: [https://developer.nvidia.com/login](https://developer.nvidia.com/login)
+### Running the Container
 
-**1.** Execute the indicated script to start the container:
+To start the container and automatically configure the simulation environment, run:
 
-```sh
+```bash
 ./run-hunav_isaac.bash
 ```
 
-**2.** Once you are inside the container terminal:
+This script will:
 
-Run the next code **once**; it compiles the overlay and unpacks the Carter ROS2
-sensors USD model:
+- Prompt you for **Omniverse credentials** (only on the first run).
+- Automatically build and source the **HuNav Isaac workspace**.
+- Launch the Isaac Sim container.
+
+### Omniverse Login (Required)
+
+To connect to the **Nucleus server**, which allows **Isaac Sim** to download and cache asset packs locally, you must log in with your **Omniverse username and password**.
+
+If you don’t have an account, you can register here:\
+   [https://developer.nvidia.com/login](https://developer.nvidia.com/login)
+
+Your credentials are securely stored using your system’s **keyring** (`libsecret` via `secret-tool`) after first use.\
+You won’t be prompted again in future runs unless you manually reset them.
+
+#### Resetting Credentials (Optional)
+
+If you entered incorrect credentials or want to re-authenticate, you can run:
 
 ```bash
-# build and source the shared workspace
-cd /workspace/hunav_isaac_ws
-colcon build --symlink-install
-source install/setup.bash
-echo 'source /workspace/hunav_isaac_ws/install/setup.bash' >> /etc/bash.bashrc
-
-# unzip Carter ROS 2 sensors USD model
-cd /workspace/hunav_isaac_ws/src/Hunav_isaac_wrapper/config/robots
-unzip -n nova_carter_ros2_sensors.zip
-cd /workspace/hunav_isaac_ws/src/Hunav_isaac_wrapper
-```
-
-You **do not** need to repeat the block above unless you delete the shared
-volumes or rebuild the container from scratch.
-
-**3.** From now on, every time you start the container just run:
-
-```sh
-terminator & sleep 1         
-
-launch_hunav_isaac
+./run-hunav_isaac.bash --reset-credentials
 ```
 
 This will:
 
-1. Open a **Terminator** window so you can send ROS 2 commands or navigate through the container.
+- Clear the stored credentials from the system keyring.
+- Prompt you again for your username and password.
+- Immediately launch the container afterward.
 
-2. Start **Isaac Sim** and load the **wrapper** with the default example.
+### Inside the Container
 
-**Note**: First launch **may take several minutes** while Isaac Sim populates its caches. Subsequent launches are significantly faster thanks to the persistent volumes.
+Launch the simulation using one of the following options:
 
-The default example loads the **Warehouse** scene with a **Carter robot**.
-Carter is pre-configured for autonomous navigation using **ROS 2 Nav2**.
-To activate Nav2, start the navigation stack from the Terminator window with:
+```bash
+# Interactive launcher (recommended)
+hunav_isaac
 
-```sh
-cd /workspace/hunav_isaac_ws/src/Hunav_isaac_wrapper
-ros2 launch carter_navigation carter_navigation.launch.py params_file:="config/navigation_params/carter_navigation_params.yaml" map:="scenarios/occupancy_maps/warehouse.yaml"
+# Launch with custom configuration
+hunav_isaac --config warehouse_agents.yaml --robot carter_ROS
+
+# or use ROS2 command with same arguments (hunav_isaac is an alias for this)
+ros2 run hunav_isaac_wrapper hunav_isaac_launcher
+```
+
+**Available robots**: `jetbot`, `create3`, `carter`, `carter_ROS`\
+**Available worlds**: `warehouse`, `hospital`, `office`
+
+### ⓘ Additional Notes
+
+- The first launch may take **several minutes** while Isaac Sim populates its caches. Subsequent launches are significantly faster thanks to persistent volumes.
+- The `Carter_ROS` robot is compatible with the **ROS 2 Nav2** stack for navigation. To control **Carter** robot via **ROS 2 Nav2**:
+
+```bash
+# Open a new terminal 
+terminator &
+
+# In the new terminal, execute:
+cd /workspace/hunav_isaac_ws/src/Hunav_isaac_wrapper/src
+ros2 launch carter_navigation carter_navigation.launch.py \
+  params_file:="config/navigation_params/carter_navigation_params.yaml" \
+  map:="scenarios/occupancy_maps/warehouse.yaml"
 ```

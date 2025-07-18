@@ -17,14 +17,89 @@ XSOCK="/tmp/.X11-unix"
 XAUTH="$HOME/.Xauthority"
 
 # ─────────────────────────────────────────────────────────────
-# 2. Ask for Omniverse credentials if not exported
+# 2. Securely retrieve Omniverse credentials (Keyring + fallback)
 # ─────────────────────────────────────────────────────────────
 export ACCEPT_EULA=${ACCEPT_EULA:-Y}
 export PRIVACY_CONSENT=${PRIVACY_CONSENT:-Y}
 export OMNI_SERVER=${OMNI_SERVER:-omniverse://localhost/NVIDIA/Assets/Isaac/4.5}
 
-if [[ -z "${OMNI_USER:-}" ]]; then read -rp "Omniverse user: "  OMNI_USER; fi
-if [[ -z "${OMNI_PASS:-}" ]]; then read -srp "Omniverse pass: " OMNI_PASS; echo; fi
+CRED_FILE="${SCRIPT_DIR}/omniverse_credentials"
+USE_KEYRING=false
+
+# Parse --reset-credentials if passed
+for arg in "$@"; do
+    if [[ "$arg" == "--reset-credentials" ]]; then
+        echo -e "\n🧹 Clearing saved Omniverse credentials..."
+        if command -v secret-tool &> /dev/null; then
+            secret-tool clear service omniverse_user || true
+            secret-tool clear service omniverse_pass || true
+        fi
+        rm -f "$CRED_FILE"
+        echo -e "Credentials cleared. They will be requested again now.\n"
+        unset OMNI_USER OMNI_PASS
+    fi
+done
+
+# Try to ensure secret-tool is available
+if ! command -v secret-tool &> /dev/null; then
+    echo "'secret-tool' not found. Trying to install libsecret-tools..."
+    if command -v sudo &> /dev/null; then
+        sudo apt update && sudo apt install -y libsecret-tools
+    else
+        echo "⚠️  Could not install secret-tool (sudo not available). Will use local credential file."
+    fi
+fi
+
+# Try keyring access
+if command -v secret-tool &> /dev/null; then
+    USE_KEYRING=true
+fi
+
+if $USE_KEYRING; then
+    OMNI_USER=$(secret-tool lookup service omniverse_user)
+    OMNI_PASS=$(secret-tool lookup service omniverse_pass)
+
+    CRED_STORED=false
+
+    if [[ -z "$OMNI_USER" ]]; then
+        echo -e "\nPlease enter your Omniverse credentials:\n"
+        read -rp "Omniverse user: " OMNI_USER
+        echo -n "$OMNI_USER" | secret-tool store --label="Omniverse Username" service omniverse_user
+        CRED_STORED=true
+    fi
+
+    if [[ -z "$OMNI_PASS" ]]; then
+        read -srp "Omniverse pass: " OMNI_PASS; echo
+        echo -n "$OMNI_PASS" | secret-tool store --label="Omniverse Password" service omniverse_pass
+        CRED_STORED=true
+    fi
+
+    if $CRED_STORED; then
+        echo -e "\n🔐 Omniverse credentials securely stored in system keyring.\n"
+    fi
+
+else
+    # Fallback to local file
+    if [[ -f "$CRED_FILE" ]]; then
+        source "$CRED_FILE"
+    fi
+
+    if [[ -z "${OMNI_USER:-}" ]]; then
+        read -rp "Omniverse user: " OMNI_USER
+        echo "# Auto-generated credentials file. Do not commit." > "$CRED_FILE"
+        echo "OMNI_USER=\"$OMNI_USER\"" >> "$CRED_FILE"
+    fi
+
+    if [[ -z "${OMNI_PASS:-}" ]]; then
+        read -srp "Omniverse pass: " OMNI_PASS; echo
+        if ! grep -q OMNI_PASS "$CRED_FILE"; then
+            echo "OMNI_PASS=\"$OMNI_PASS\"" >> "$CRED_FILE"
+        fi
+    fi
+
+    chmod 600 "$CRED_FILE"
+fi
+
 export OMNI_USER OMNI_PASS
 
 # ─────────────────────────────────────────────────────────────
