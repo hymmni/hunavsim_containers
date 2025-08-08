@@ -21,12 +21,13 @@ The containers contains all the required packages to run different simulations o
 |-------------|---------------|
 | **Docker**  | Install Docker Engine following the official guide → <https://docs.docker.com/desktop/setup/install/linux/> |
 | **Git**     | Needed to clone the HuNavSim and wrappers repositories |
+| **Nvidia container toolkit** | https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
 
-
+The docker containers must run using GPU 
 
 # Installation
 
-Once you have installed docker, you can install the system by executing the bash script *install.sh*.
+Once you have installed the previous dependencies, you can clone this repository and install the system by executing the bash script *install.sh*.
 First give execution permission to the script from a terminal:
 
 ```sh
