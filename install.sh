@@ -8,13 +8,12 @@ echo -e "\e[33m" # Start yellow for the rest
 
 echo -e "1. HuNavSim + Gazebo Classic 11 + ROS 2 Humble + Nav2 PAL PMB2 robot"
 echo -e "2. HuNavSim + Gazebo Fortress   + ROS 2 Humble"
-echo -e "3. HuNavSim + Isaac Sim         + ROS 2 Humble + Nav2 Carter robot"
-echo -e "4. HuNavSim + Webots            + ROS 2 Humble + Nav2 Tiago robot"
+echo -e "3. HuNavSim + Webots            + ROS 2 Humble + Nav2 Tiago robot"
 #echo -e "5. HuNavSim + O3DE              + ROS 2 Humble + robot? (UMM.. WE ARE STILL THINKING ABOUT IT!)"
 echo -e "\e[0m"
-read -p "Please select an option (1-4): " option
+read -p "Please select an option (1-3): " option
 # Check if the input is a number between 1 and 4
-if ! [[ "$option" =~ ^[1-4]$ ]]; then
+if ! [[ "$option" =~ ^[1-3]$ ]]; then
     echo -e "\e[31mInvalid option. Please select a number between 1 and 4.\e[0m"
     exit 1
 fi
@@ -66,23 +65,6 @@ case $option in
         ;;
 
     3)
-        # HuNavSim + Isaac Sim         + ROS 2 Humble + Carter robot 
-        echo "You selected option 3: HuNavSim + Isaac Sim + ROS 2 Humble + Nav2 Carter robot"
-        # Move to the directory where the Gazebo Classic scripts are located
-        LOCAL_DIR="isaac_sim"
-        cd $LOCAL_DIR
-        # check if docker is installed
-        if ! command -v docker &> /dev/null; then
-            echo -e "\e[31mDocker is not installed. Please install Docker first.\e[0m"
-            exit 1
-        fi
-        WS_NAME="hunav_isaac_ws"                 
-        CONTAINER_NAME="hunav_isaac_sim"
-        DOCKERFILE_NAME="Dockerfile.hunav_isaac"     
-        RUN_SCRIPT_NAME="run-hunav_isaac.bash"      
-        REPO2_URL="https://github.com/robotics-upo/Hunav_isaac_wrapper.git"
-        ;;
-    4)
         # HuNavSim + Webots            + ROS 2 Humble + robot? (AVAILABLE SOON!)
         echo "You selected option 4: HuNavSim + Webots            + ROS 2 Humble + Nav2 Tiago Robot"
         LOCAL_DIR="webots"
@@ -143,9 +125,9 @@ cd $SRC_NAME
 echo -e "\e[33m================================================\e[0m"
 echo -e "\e[33mCloning HuNav software in the share workspace...\e[0m"
 echo -e "\e[33m================================================\e[0m"
-git clone "$REPO1_URL" 
+git clone -b v1.0-Humble "$REPO1_URL" 
 echo "Repository '$REPO1_URL' has been cloned."
-git clone "$REPO2_URL" 
+git clone -b v1.0-Humble "$REPO2_URL" 
 echo "Repository '$REPO2_URL' has been cloned."
 
 echo -e "\e[36m_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-__-⁻-_-⁻-_-⁻-_-⁻-_\e[0m"
