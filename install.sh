@@ -1,15 +1,15 @@
 #!/bin/bash
 
 echo -e "\e[36m_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-__-⁻-_-⁻-_-⁻-_-⁻-_\e[0m"
-echo -e "\e[36m            HuNavSim Docker System\e[0m"
+echo -e "\e[36m            HuNavSim 2.0 Docker System\e[0m"
 echo -e "\e[36m_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-__-⁻-_-⁻-_-⁻-_-⁻-_\e[0m"
 echo -e "\e[33mPlease select wich HuNavSim system you want to install:\e[0m"
 echo -e "\e[33m" # Start yellow for the rest
 
-echo -e "1. HuNavSim + Gazebo Classic 11 + ROS 2 Humble + Nav2 PAL PMB2 robot"
-echo -e "2. HuNavSim + Gazebo Fortress   + ROS 2 Humble"
-echo -e "3. HuNavSim + Isaac Sim         + ROS 2 Humble + Nav2 Carter robot"
-echo -e "4. HuNavSim + Webots            + ROS 2 Humble + Nav2 Tiago robot"
+echo -e "1. HuNavSim 2.0 + Gazebo Classic 11 + ROS 2 Humble + Nav2 PAL PMB2 robot"
+echo -e "2. HuNavSim 2.0 + Gazebo Fortress   + ROS 2 Humble"
+echo -e "3. HuNavSim 2.0 + Isaac Sim         + ROS 2 Humble + Nav2 Carter robot"
+echo -e "4. HuNavSim 2.0 + Webots            + ROS 2 Humble + Nav2 Tiago robot"
 #echo -e "5. HuNavSim + O3DE              + ROS 2 Humble + robot? (UMM.. WE ARE STILL THINKING ABOUT IT!)"
 echo -e "\e[0m"
 read -p "Please select an option (1-4): " option
@@ -49,7 +49,7 @@ case $option in
     # OPTION 2
     # HuNavSim + Gazebo Fortress   + ROS 2 Humble
     2) 
-        echo "You selected option 2: HuNavSim + Gazebo Fortress   + ROS 2 Humble"
+        echo "You selected option 2: HuNavSim 2.0 + Gazebo Fortress   + ROS 2 Humble"
         # Move to the directory where the Gazebo Classic scripts are located
         LOCAL_DIR="gazebo_fortress"
         cd $LOCAL_DIR
@@ -67,7 +67,7 @@ case $option in
 
     3)
         # HuNavSim + Isaac Sim         + ROS 2 Humble + Carter robot 
-        echo "You selected option 3: HuNavSim + Isaac Sim + ROS 2 Humble + Nav2 Carter robot"
+        echo "You selected option 3: HuNavSim 2.0 + Isaac Sim + ROS 2 Humble + Nav2 Carter robot"
         # Move to the directory where the Gazebo Classic scripts are located
         LOCAL_DIR="isaac_sim"
         cd $LOCAL_DIR
@@ -84,7 +84,7 @@ case $option in
         ;;
     4)
         # HuNavSim + Webots            + ROS 2 Humble + robot? (AVAILABLE SOON!)
-        echo "You selected option 4: HuNavSim + Webots            + ROS 2 Humble + Nav2 Tiago Robot"
+        echo "You selected option 4: HuNavSim 2.0 + Webots            + ROS 2 Humble + Nav2 Tiago Robot"
         LOCAL_DIR="webots"
         cd $LOCAL_DIR
         # check if docker is installed
