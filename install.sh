@@ -125,9 +125,9 @@ cd $SRC_NAME
 echo -e "\e[33m================================================\e[0m"
 echo -e "\e[33mCloning HuNav software in the share workspace...\e[0m"
 echo -e "\e[33m================================================\e[0m"
-git clone -b v1.0-Humble "$REPO1_URL" 
+git clone -b v1.0-humble "$REPO1_URL" 
 echo "Repository '$REPO1_URL' has been cloned."
-git clone -b v1.0-Humble "$REPO2_URL" 
+git clone -b v1.0-humble "$REPO2_URL" 
 echo "Repository '$REPO2_URL' has been cloned."
 
 echo -e "\e[36m_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-__-⁻-_-⁻-_-⁻-_-⁻-_\e[0m"
