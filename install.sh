@@ -6,15 +6,15 @@ echo -e "\e[36m_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-__-⁻-_-�
 echo -e "\e[33mPlease select wich HuNavSim system you want to install:\e[0m"
 echo -e "\e[33m" # Start yellow for the rest
 
-echo -e "1. HuNavSim + Gazebo Classic 11 + ROS 2 Humble + PAL PMB2 robot"
+echo -e "1. HuNavSim + Gazebo Classic 11 + ROS 2 Humble + Nav2 PAL PMB2 robot"
 echo -e "2. HuNavSim + Gazebo Fortress   + ROS 2 Humble"
-echo -e "3. HuNavSim + Isaac Sim         + ROS 2 Humble + Carter robot"
-echo -e "4. HuNavSim + Webots            + ROS 2 Humble + Tiago robot"
-echo -e "5. HuNavSim + O3DE              + ROS 2 Humble + robot? (UMM.. WE ARE STILL THINKING ABOUT IT!)"
+echo -e "3. HuNavSim + Isaac Sim         + ROS 2 Humble + Nav2 Carter robot"
+echo -e "4. HuNavSim + Webots            + ROS 2 Humble + Nav2 Tiago robot"
+#echo -e "5. HuNavSim + O3DE              + ROS 2 Humble + robot? (UMM.. WE ARE STILL THINKING ABOUT IT!)"
 echo -e "\e[0m"
-read -p "Please select an option (1-5): " option
+read -p "Please select an option (1-4): " option
 # Check if the input is a number between 1 and 4
-if ! [[ "$option" =~ ^[1-5]$ ]]; then
+if ! [[ "$option" =~ ^[1-4]$ ]]; then
     echo -e "\e[31mInvalid option. Please select a number between 1 and 4.\e[0m"
     exit 1
 fi
@@ -35,7 +35,7 @@ case $option in
     # OPTION 1
     # HuNavSim + Gazebo Classic 11 + ROS 2 Humble + PAL PMB2 robot
     1)
-        echo "You selected option 1: HuNavSim + Gazebo Classic 11 + ROS 2 Humble + PAL PMB2 robot"
+        echo "You selected option 1: HuNavSim + Gazebo Classic 11 + ROS 2 Humble + Nav2 PAL PMB2 robot"
         # Move to the directory where the Gazebo Classic scripts are located
         cd $LOCAL_DIR
         # check if docker is installed
@@ -67,7 +67,7 @@ case $option in
 
     3)
         # HuNavSim + Isaac Sim         + ROS 2 Humble + Carter robot 
-        echo "You selected option 3: HuNavSim + Isaac Sim + ROS 2 Humble + Carter robot"
+        echo "You selected option 3: HuNavSim + Isaac Sim + ROS 2 Humble + Nav2 Carter robot"
         # Move to the directory where the Gazebo Classic scripts are located
         LOCAL_DIR="isaac_sim"
         cd $LOCAL_DIR
@@ -84,7 +84,7 @@ case $option in
         ;;
     4)
         # HuNavSim + Webots            + ROS 2 Humble + robot? (AVAILABLE SOON!)
-        echo "You selected option 4: HuNavSim + Webots            + ROS 2 Humble + Tiago Robot"
+        echo "You selected option 4: HuNavSim + Webots            + ROS 2 Humble + Nav2 Tiago Robot"
         LOCAL_DIR="webots"
         cd $LOCAL_DIR
         # check if docker is installed
@@ -97,18 +97,6 @@ case $option in
         DOCKERFILE_NAME="Dockerfile.hunav_webots"
         REPO2_URL="https://github.com/robotics-upo/hunav_webots_wrapper.git"
         RUN_SCRIPT_NAME="run-hunav_webots.bash"
-        ;;
-    5)
-        # HuNavSim + O3DE              + ROS 2 Humble + robot? (UMM.. WE ARE STILL THINKING ABOUT IT!)
-        echo "You selected option 5: HuNavSim + O3DE              + ROS 2 Humble + robot? (UMM.. WE ARE STILL THINKING ABOUT IT!)"
-        # run the installation script for HuNavSim + O3DE              + ROS 2 Humble + robot? (UMM.. WE ARE STILL THINKING ABOUT IT!)
-        # check if docker is installed
-        if ! command -v docker &> /dev/null; then
-            echo -e "\e[31mDocker is not installed. Please install Docker first.\e[0m"
-            exit 1
-        fi
-        echo "TO BE DONE!!!"
-        exit 1
         ;;
 
     *)

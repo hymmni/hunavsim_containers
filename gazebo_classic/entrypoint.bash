@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 echo -e "\e[36m_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-__-⁻-_-⁻-_-⁻-_-⁻-_\e[0m"
 echo -e "\e[36m        HuNavSim Gazebo Classic System\e[0m"
 echo -e "\e[36m_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-_-⁻-__-⁻-_-⁻-_-⁻-_-⁻-_\e[0m"
@@ -22,7 +23,7 @@ fi
 # source the workspace
 source /home/hunav_gz_classic_ws/install/setup.bash
 
-
+echo -e "\e[31mNOTE: First execution may fail if Gazebo takes long time. Stop the system (crtl+c) and re-run from the menu\e[0m"
 # Menu loop
 while true; do
     echo ""
@@ -39,17 +40,17 @@ while true; do
     else
         for f in "${yaml_files[@]}"; do
             fname=$(basename "$f")
-            echo -e "\e[33m  $i) Run environment $fname\e[0m"
+            echo -e "\e[33m  $i) Run scenario $fname\e[0m"
             ((i++))
         done
     fi
-    echo -e "\e[33m  $i) Create a new environment with RViz\e[0m"
+    echo -e "\e[33m  $i) Create a new scenario with RViz\e[0m"
     rviz_option=$i
     ((i++))
     echo -e "\e[33m  $i) Open a bash shell\e[0m"
     bash_option=$i
     ((i++))
-    echo -e "\e[33m  $i) Exit\e[0m"
+    echo -e "\e[33m  $i) Exit container \e[0m"
     exit_option=$i
     echo -e "\e[33m========================================\e[0m"
     read -p "Select an option (number): " opt
@@ -67,11 +68,47 @@ while true; do
             echo ""
             ros2 launch hunav_gazebo_wrapper simulation.launch.py environment_name:=$map_name configuration_file:=$yaml_name
         elif [ "$opt" -eq "$bash_option" ]; then
-            echo -e "\e[33mOpening bash shell...\e[0m"
-            exec bash
+            echo -e "\e[33mTo open a new terminal inside this Docker container, open a new terminal on your host and run:\e[0m"
+            echo -e "\e[3m\e[32mdocker exec -it hunavsim_pmb2 bash\e[0m"
         elif [ "$opt" -eq "$rviz_option" ]; then
-            echo -e "\e[33mLaunching RViz with HuNavSim panel\e[0m"
-            ros2 launch hunav_rviz2_panel hunav_rviz2_launch.py
+            MAPS_DIR="/home/hunav_gz_classic_ws/src/hunav_gazebo_wrapper/maps"
+            map_files=($MAPS_DIR/*.yaml)
+            number_of_map_files=${#map_files[@]}
+            j=1
+            if [ ${#map_files[@]} -eq 0 ]; then
+                echo -e "\e[31m  (No map files found!)\e[0m"
+                exec bash
+                exit 1
+            else
+                echo ""
+                echo -e "\e[33mAvailable map files:"
+                for f in "${map_files[@]}"; do
+                    fname=$(basename "$f")
+                    echo -e "\e[33m  $j) Open $fname\e[0m"
+                    ((j++))
+                done
+                echo -e "\e[33m========================================\e[0m"
+            fi
+            read -p "Select a map (number): " map_opt
+            if [[ $map_opt =~ ^[0-9]+$ ]]; then
+                id=$((map_opt-1))
+                if [ $id -ge 0 ] && [ $id -lt ${#map_files[@]} ]; then
+                    map="${map_files[$id]}"
+                    MAP_VALUE=$(grep '^[[:space:]]*map:' "$map" | head -n1 | awk -F': ' '{print $2}')
+                    #map_name="${MAP_VALUE%.*}"
+                    map_name=$(basename "$map")
+                    echo "You selected: $map_name"
+                    #yaml_name=$(basename "$map")
+                    echo ""
+                    echo -e "\e[33mLaunching RViz with HuNavSim panel\e[0m"
+                    echo ""
+                    ros2 launch hunav_rviz2_panel hunav_rviz2_launch.py wrapper_pkg:=hunav_gazebo_wrapper map:=$map_name
+                else
+                    echo -e "\e[31mInvalid option. Please try again.\e[0m"
+                fi
+            else
+                echo -e "\e[31mInvalid selection.\e[0m"
+            fi
         elif [ "$opt" -eq "$exit_option" ]; then
             echo -e "\e[33mExiting container.\e[0m"
             exit 0
