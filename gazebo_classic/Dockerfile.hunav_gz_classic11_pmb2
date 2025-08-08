@@ -118,6 +118,22 @@ RUN git clone -b ros2 https://github.com/wg-perception/people.git
 #RUN git clone -b humble https://github.com/robotics-upo/hunav_sim.git
 #RUN git clone -b humble https://github.com/robotics-upo/hunav_gazebo_wrapper.git
 
+
+# Install Groot2 v1.6.1 
+WORKDIR /opt/Groot2
+
+ADD https://s3.us-west-1.amazonaws.com/download.behaviortree.dev/groot2_linux_installer/Groot2-v1.6.1-x86_64.AppImage Groot2.AppImage
+
+RUN chmod +x Groot2.AppImage && \
+    ./Groot2.AppImage --appimage-extract && \
+    mkdir -p /opt/Groot2/bin && \
+    mv squashfs-root /opt/Groot2/squashfs && \
+    ln -s /opt/Groot2/squashfs/AppRun /opt/Groot2/bin/groot2 && \
+    rm Groot2.AppImage
+
+
+WORKDIR /home/pmb2_ws/src
+
 # get BehaviorTree.CPP v4.6 or newer
 RUN git clone https://github.com/BehaviorTree/BehaviorTree.CPP.git
 RUN git clone -b humble https://github.com/BehaviorTree/BehaviorTree.ROS2.git
@@ -131,6 +147,10 @@ RUN source /opt/ros/humble/setup.bash && colcon build --symlink-install
 # source the local workspace
 RUN source /home/pmb2_ws/install/setup.bash
 RUN echo "source /home/pmb2_ws/install/setup.bash" >> /root/.bashrc 
+
+# Add PATH for Groot2
+RUN echo '# Add Groot2 to PATH' >> /etc/bash.bashrc && \
+    echo 'export PATH="/opt/Groot2/bin:$PATH"' >> /etc/bash.bashrc
 
 COPY entrypoint.bash /entrypoint.bash
 RUN chmod +x /entrypoint.bash

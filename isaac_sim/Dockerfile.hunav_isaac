@@ -195,7 +195,7 @@ if [ -f "src/Hunav_isaac_wrapper/src/isaacsim.exp.base.kit" ]; then
     cp src/Hunav_isaac_wrapper/src/isaacsim.exp.base.kit /isaac-sim/apps/
     echo "Isaac Sim config copied to /isaac-sim/apps/"
 else
-    echo "⚠️  Warning: isaacsim.exp.base.kit not found in src/"
+    echo "Warning: isaacsim.exp.base.kit not found in src/"
 fi
 
 # ────────────────────────────────────────────────────────────────────────
@@ -238,10 +238,10 @@ touch "$SETUP_MARKER"
 
 echo ""
 echo "──────────────────────────────────────────────────────────────"
-echo -e "\n HuNav Isaac workspace setup complete! ✅\n"
+echo -e "\n HuNav Isaac workspace setup complete! \n"
 echo "──────────────────────────────────────────────────────────────"
 echo ""
-echo "🔁 This setup will not run again unless you delete the volumes or rebuild the container."
+echo " This setup will not run again unless you delete the volumes or rebuild the container."
 echo ""
 echo "You can now run the HuNav Isaac simulation with:"
 echo "  hunav_isaac  # Launch interactive menu"
