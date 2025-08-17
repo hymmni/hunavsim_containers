@@ -71,43 +71,17 @@ while true; do
             echo -e "\e[33mTo open a new terminal inside this Docker container, open a new terminal on your host and run:\e[0m"
             echo -e "\e[3m\e[32mdocker exec -it hunavsim_pmb2 bash\e[0m"
         elif [ "$opt" -eq "$rviz_option" ]; then
-            MAPS_DIR="/home/hunav_gz_classic_ws/src/hunav_gazebo_wrapper/maps"
-            map_files=($MAPS_DIR/*.yaml)
-            number_of_map_files=${#map_files[@]}
-            j=1
-            if [ ${#map_files[@]} -eq 0 ]; then
-                echo -e "\e[31m  (No map files found!)\e[0m"
+            echo ""
+            echo -e "\e[33mLaunching RViz with HuNavSim panel\e[0m"
+            echo ""
+            ros2 launch hunav_rviz2_panel hunav_rviz2_launch.py
+            echo "After creating/modifying a scenario, we compile the workspace..."
+            cd /home/hunav_gz_classic_ws
+            if ! colcon build --symlink-install; then
+                echo "Error: the workspace compilation failed! Stopping the script and opening a bash shell."
+                error=true
                 exec bash
                 exit 1
-            else
-                echo ""
-                echo -e "\e[33mAvailable map files:"
-                for f in "${map_files[@]}"; do
-                    fname=$(basename "$f")
-                    echo -e "\e[33m  $j) Open $fname\e[0m"
-                    ((j++))
-                done
-                echo -e "\e[33m========================================\e[0m"
-            fi
-            read -p "Select a map (number): " map_opt
-            if [[ $map_opt =~ ^[0-9]+$ ]]; then
-                id=$((map_opt-1))
-                if [ $id -ge 0 ] && [ $id -lt ${#map_files[@]} ]; then
-                    map="${map_files[$id]}"
-                    MAP_VALUE=$(grep '^[[:space:]]*map:' "$map" | head -n1 | awk -F': ' '{print $2}')
-                    #map_name="${MAP_VALUE%.*}"
-                    map_name=$(basename "$map")
-                    echo "You selected: $map_name"
-                    #yaml_name=$(basename "$map")
-                    echo ""
-                    echo -e "\e[33mLaunching RViz with HuNavSim panel\e[0m"
-                    echo ""
-                    ros2 launch hunav_rviz2_panel hunav_rviz2_launch.py wrapper_pkg:=hunav_gazebo_wrapper map:=$map_name
-                else
-                    echo -e "\e[31mInvalid option. Please try again.\e[0m"
-                fi
-            else
-                echo -e "\e[31mInvalid selection.\e[0m"
             fi
         elif [ "$opt" -eq "$exit_option" ]; then
             echo -e "\e[33mExiting container.\e[0m"
