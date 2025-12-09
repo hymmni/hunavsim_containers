@@ -5,7 +5,7 @@ xhost +local:docker
 cwd=$(pwd)
 
 docker run -it \
-    --name hunavsim_pmb2 \
+    --name hunavsim_gz_classic \
     --gpus all \
     --runtime=nvidia \
     --env="NVIDIA_VISIBLE_DEVICES=none" \
@@ -19,5 +19,5 @@ docker run -it \
     pmb2_hunavsim \
     bash
     
-docker rm hunavsim_pmb2
+# docker rm hunavsim_gz_classic
 

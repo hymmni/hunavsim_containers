@@ -5,7 +5,7 @@ FROM osrf/ros:humble-desktop-full
 # docker build -t pmb2_hunavsim -f Dockerfile.hunav_gz_classic11_pmb2 .
 #
 
-WORKDIR /home
+WORKDIR /workspaces
 
 ENV QT_X11_NO_MITSHM=1
 ENV EDITOR=nano
@@ -96,7 +96,7 @@ ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 RUN mkdir -p pmb2_ws/src 
 
 # get pmb2 packages
-WORKDIR /home/pmb2_ws/src
+WORKDIR /workspaces/pmb2_ws/src
 #RUN vcs import --input https://raw.githubusercontent.com/pal-robotics/pmb2_tutorials/humble-devel/pmb2_public.repos src
 RUN git clone -b humble-devel https://github.com/pal-robotics/urdf_test.git
 RUN git clone -b master https://github.com/pal-robotics/launch_pal.git
@@ -132,7 +132,7 @@ RUN chmod +x Groot2.AppImage && \
     rm Groot2.AppImage
 
 
-WORKDIR /home/pmb2_ws/src
+WORKDIR /workspaces/pmb2_ws/src
 
 # get BehaviorTree.CPP v4.6 or newer
 RUN git clone https://github.com/BehaviorTree/BehaviorTree.CPP.git
@@ -140,13 +140,13 @@ RUN git clone -b humble https://github.com/BehaviorTree/BehaviorTree.ROS2.git
 
 
 # compile the workspace
-WORKDIR /home/pmb2_ws/
+WORKDIR /workspaces/pmb2_ws/
 # source the ROS 2 environment and compile the workspace
 RUN source /opt/ros/humble/setup.bash && colcon build --symlink-install
 
 # source the local workspace
-RUN source /home/pmb2_ws/install/setup.bash
-RUN echo "source /home/pmb2_ws/install/setup.bash" >> /root/.bashrc 
+RUN source /workspaces/pmb2_ws/install/setup.bash
+RUN echo "source /workspaces/pmb2_ws/install/setup.bash" >> /root/.bashrc 
 
 # Add PATH for Groot2
 RUN echo '# Add Groot2 to PATH' >> /etc/bash.bashrc && \

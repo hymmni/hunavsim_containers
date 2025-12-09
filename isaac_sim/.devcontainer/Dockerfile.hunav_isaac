@@ -124,7 +124,7 @@ RUN chmod +x Groot2.AppImage && \
 #───────────────────────────────────────────────────────────────────────────────
 # 7) Clone required packages: People, BehaviorTree and IsaacSim-ros_workspaces
 #───────────────────────────────────────────────────────────────────────────────
-WORKDIR /home/ros2_ws/src
+WORKDIR /workspaces/ros2_ws/src
 
 RUN git clone --branch ros2 https://github.com/wg-perception/people.git && \
   git clone https://github.com/BehaviorTree/BehaviorTree.CPP.git && \
@@ -135,13 +135,13 @@ RUN git clone --branch ros2 https://github.com/wg-perception/people.git && \
 #───────────────────────────────────────────────────────────────────────────────
 # 8) Solve dependencies and compile main ROS2 workspace 
 #───────────────────────────────────────────────────────────────────────────────
-WORKDIR /home/ros2_ws
+WORKDIR /workspaces/ros2_ws
 
 RUN apt-get update && \
   rosdep init && \
   rosdep update && \
   source /opt/ros/humble/setup.bash && \
-  rosdep install --from-paths /home/ros2_ws/src \
+  rosdep install --from-paths /workspaces/ros2_ws/src \
   --rosdistro humble -y --ignore-src && \
   rm -rf /var/lib/apt/lists/*
 
@@ -155,7 +155,7 @@ RUN source /opt/ros/humble/setup.bash && \
 # Source the base ROS2 environments
 RUN echo '# >>> ROS 2 Environments >>>' >> /etc/bash.bashrc && \
     echo 'source /opt/ros/humble/setup.bash' >> /etc/bash.bashrc && \
-    echo 'source /home/ros2_ws/install/setup.bash' >> /etc/bash.bashrc && \
+    echo 'source /workspaces/ros2_ws/install/setup.bash' >> /etc/bash.bashrc && \
     echo '# <<< ROS 2 Environments <<<' >> /etc/bash.bashrc
 
 # Add PATH for Groot2
@@ -213,7 +213,7 @@ fi
 # ────────────────────────────────────────────────────────────────────────
 echo -e "\n🔨 Building workspace...\n"
 source /opt/ros/humble/setup.bash
-source /home/ros2_ws/install/setup.bash
+source /workspaces/ros2_ws/install/setup.bash
 colcon build --symlink-install
 
 echo -e "\nSourcing workspace...\n"
