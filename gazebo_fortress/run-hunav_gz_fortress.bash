@@ -8,7 +8,7 @@ docker run -it \
     --name hunavsim_gz_fortress \
     --gpus all \
     --runtime=nvidia \
-    --env="NVIDIA_VISIBLE_DEVICES=none" \
+    --env="NVIDIA_VISIBLE_DEVICES=all" \
     --env="NVIDIA_DRIVER_CAPABILITIES=all" \
     --env="DISPLAY=$DISPLAY" \
     --env="QT_X11_NO_MITSHM=1" \
@@ -19,5 +19,5 @@ docker run -it \
     gz_fortress_hunavsim \
     bash
     
-docker rm hunavsim_gz_fortress
+# docker rm hunavsim_gz_fortress
 

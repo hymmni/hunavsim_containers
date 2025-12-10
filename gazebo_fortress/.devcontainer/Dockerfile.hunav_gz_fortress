@@ -152,6 +152,7 @@ RUN echo '# Add Groot2 to PATH' >> /etc/bash.bashrc && \
     echo 'export PATH="/opt/Groot2/bin:$PATH"' >> /etc/bash.bashrc
 
 COPY entrypoint.bash /entrypoint.bash
+COPY entrypoint.bash /home/entrypoint.bash
 RUN chmod +x /entrypoint.bash
 ENTRYPOINT ["/entrypoint.bash"]
 CMD ["bash"]

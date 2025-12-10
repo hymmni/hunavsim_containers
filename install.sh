@@ -23,9 +23,9 @@ fi
 LOCAL_DIR="gazebo_classic"
 WS_NAME="hunav_gz_classic_ws"
 SRC_NAME="src"
-CONTAINER_NAME="pmb2_hunavsim"
-DOCKERFILE_NAME="Dockerfile.hunav_gz_classic11_pmb2"
-REPO1_URL="https://github.com/robotics-upo/hunav_sim.git"
+CONTAINER_NAME="gz_classic_hunavsim"
+DOCKERFILE_NAME=".devcontainer/Dockerfile.hunav_gz_classic11_pmb2"
+REPO1_URL="https://github.com/hymmni/hunav_sim.git"
 REPO2_URL="https://github.com/robotics-upo/hunav_gazebo_wrapper.git"
 RUN_SCRIPT_NAME="run-hunav_gz_classic11_pmb2.bash"
 
@@ -60,7 +60,7 @@ case $option in
         fi
         WS_NAME="hunav_gz_fortress_ws"
         CONTAINER_NAME="gz_fortress_hunavsim"
-        DOCKERFILE_NAME="Dockerfile.hunav_gz_fortress"
+        DOCKERFILE_NAME=".devcontainer/Dockerfile.hunav_gz_fortress"
         REPO2_URL="https://github.com/robotics-upo/hunav_gazebo_fortress_wrapper.git"
         RUN_SCRIPT_NAME="run-hunav_gz_fortress.bash"
         ;;
@@ -78,7 +78,7 @@ case $option in
         fi
         WS_NAME="hunav_isaac_ws"                 
         CONTAINER_NAME="hunav_isaac_sim"
-        DOCKERFILE_NAME="Dockerfile.hunav_isaac"     
+        DOCKERFILE_NAME=".devcontainer/Dockerfile.hunav_isaac"     
         RUN_SCRIPT_NAME="run-hunav_isaac.bash"      
         REPO2_URL="https://github.com/robotics-upo/Hunav_isaac_wrapper.git"
         ;;
@@ -94,7 +94,7 @@ case $option in
         fi
         WS_NAME="hunav_webots_ws"
         CONTAINER_NAME="hunav_webots_sim"
-        DOCKERFILE_NAME="Dockerfile.hunav_webots"
+        DOCKERFILE_NAME=".devcontainer/Dockerfile.hunav_webots"
         REPO2_URL="https://github.com/robotics-upo/hunav_webots_wrapper.git"
         RUN_SCRIPT_NAME="run-hunav_webots.bash"
         ;;
@@ -143,7 +143,7 @@ cd $SRC_NAME
 echo -e "\e[33m================================================\e[0m"
 echo -e "\e[33mCloning HuNav software in the share workspace...\e[0m"
 echo -e "\e[33m================================================\e[0m"
-git clone -b v2.0 "$REPO1_URL" 
+git clone -b main "$REPO1_URL" 
 echo "Repository '$REPO1_URL' has been cloned."
 git clone -b v2.0 "$REPO2_URL" 
 echo "Repository '$REPO2_URL' has been cloned."

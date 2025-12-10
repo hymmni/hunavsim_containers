@@ -1,0 +1,11 @@
+# VS Code
+.vscode/
+
+# Docker
+log/
+
+# Dev Workspaces
+hunav_gz_classic_ws/
+hunav_gz_fortress_ws/
+hunav_isaac_ws/
+hunav_webots_ws/

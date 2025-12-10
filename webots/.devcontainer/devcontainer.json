@@ -1,6 +1,6 @@
 {
     "name": "Hunavsim Gazebo Classic Development",
-    "dockerFile": "Dockerfile.hunav_gz_classic11_pmb2",
+    "dockerFile": "Dockerfile.hunav_webots",
     "context": "..",
     "workspaceFolder": "/home",
     "customizations": {
@@ -48,6 +48,6 @@
 
         /* ---------------- custom mount from docker run ---------------- */
         "--mount",
-        "type=bind,source=${localWorkspaceFolder}/hunav_gz_classic_ws,target=/home/hunav_gz_classic_ws"
+        "type=bind,source=${localWorkspaceFolder}/hunav_webots_ws,target=/home/hunav_webots_ws"
     ]
 }

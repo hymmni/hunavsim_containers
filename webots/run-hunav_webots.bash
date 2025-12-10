@@ -8,7 +8,7 @@ docker run -it \
     --name hunav_webots_sim_container \
     --gpus all \
     --runtime=nvidia \
-    --env="NVIDIA_VISIBLE_DEVICES=none" \
+    --env="NVIDIA_VISIBLE_DEVICES=all" \
     --env="NVIDIA_DRIVER_CAPABILITIES=all" \
     --env="DISPLAY=$DISPLAY" \
     --env="QT_X11_NO_MITSHM=1" \
@@ -19,5 +19,5 @@ docker run -it \
     hunav_webots_sim \
     bash
     
-docker rm hunav_webots_sim_container
+# docker rm hunav_webots_sim_container
 

@@ -8,7 +8,7 @@ docker run -it \
     --name hunavsim_gz_classic \
     --gpus all \
     --runtime=nvidia \
-    --env="NVIDIA_VISIBLE_DEVICES=none" \
+    --env="NVIDIA_VISIBLE_DEVICES=all" \
     --env="NVIDIA_DRIVER_CAPABILITIES=all" \
     --env="DISPLAY=$DISPLAY" \
     --env="QT_X11_NO_MITSHM=1" \
@@ -16,7 +16,7 @@ docker run -it \
     --net=host \
     --privileged \
     --mount type=bind,source=$cwd/hunav_gz_classic_ws,target=/home/hunav_gz_classic_ws \
-    pmb2_hunavsim \
+    gz_classic_hunavsim \
     bash
     
 # docker rm hunavsim_gz_classic
