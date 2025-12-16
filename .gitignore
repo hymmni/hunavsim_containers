@@ -9,3 +9,8 @@ hunav_gz_classic_ws/
 hunav_gz_fortress_ws/
 hunav_isaac_ws/
 hunav_webots_ws/
+
+# build files
+build/
+devel/
+install/
