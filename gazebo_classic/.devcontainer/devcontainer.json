@@ -25,7 +25,7 @@
 
         /* -------------------- GPU / NVIDIA 옵션 -------------------- */
         "--gpus=all",
-        "--runtime=nvidia",
+        // "--runtime=nvidia",
         "--env=NVIDIA_VISIBLE_DEVICES=all",
         "--env=NVIDIA_DRIVER_CAPABILITIES=all",
 
